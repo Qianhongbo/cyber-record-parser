@@ -22,7 +22,7 @@ jobs:
         go-version: '1.23'
 
     - name: Build
-      run: go build -v ./cmd -o cyber_record_parser
+      run: go build -o cyber_record_parser -v ./cmd
 
     # - name: Test
     #   run: go test -v ./...
