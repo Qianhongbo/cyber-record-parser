@@ -3,8 +3,8 @@ package record
 import (
 	"fmt"
 	"path/filepath"
-	"time"
 	"sort"
+	"time"
 
 	"github.com/dustin/go-humanize"
 
@@ -98,10 +98,10 @@ func (r *Record) Print() {
 	// sort channel names
 	sort.Strings(channelNames)
 
-	fmt.Printf("%-50s | %-7s | %s\n", "Channel name", "Count", "Type")
+	fmt.Printf("%-45s | %-7s | %s\n", "Channel name", "Count", "Type")
 	for _, channelName := range channelNames {
 		channel := r.Channels[channelName]
-		fmt.Printf("%-50s | %-7d | %s\n", *channel.Name, *channel.MessageNumber, *channel.MessageType)
+		fmt.Printf("%-45s | %-7d | %s\n", *channel.Name, *channel.MessageNumber, *channel.MessageType)
 	}
 
 }

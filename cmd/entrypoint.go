@@ -3,8 +3,6 @@ package main
 import (
     "fmt"
     "os"
-
-    "cyber_record_parser/cmd/cyber_record_info"
 )
 
 func main() {
@@ -15,7 +13,7 @@ func main() {
 
     switch os.Args[1] {
     case "info":
-        cyber_record_info.InfoCommand() 
+        InfoCommand() 
     default:
         fmt.Println("Unknown command ", os.Args[1])
     }

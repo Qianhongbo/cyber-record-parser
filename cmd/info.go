@@ -1,4 +1,4 @@
-package cyber_record_info
+package main
 
 import (
 	"fmt"
