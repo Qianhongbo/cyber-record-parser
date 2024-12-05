@@ -14,6 +14,8 @@ func main() {
     switch os.Args[1] {
     case "info":
         InfoCommand() 
+    case "echo":
+        EchoCommand()
     default:
         fmt.Println("Unknown command ", os.Args[1])
     }

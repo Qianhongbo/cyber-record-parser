@@ -6,7 +6,7 @@ import (
 	"cyber_record_parser/internal/record"
 )
 
-func InfoCommand() {
+func EchoCommand() {
 	CheckInputArgs(3)
 
 	theRecordFilePath := os.Args[2]
