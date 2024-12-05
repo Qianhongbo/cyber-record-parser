@@ -24,9 +24,9 @@ type ChannelCache struct {
 
 type Reader struct {
 	file           *os.File
-	chunkHeaderIdx []int64
-	chunkBodyIdx   []int64
-	channels       map[string]ChannelCache
+	chunkHeaderIdx []*recordproto.SingleIndex
+	chunkBodyIdx   []*recordproto.SingleIndex
+	channels       map[string]*recordproto.ChannelCache
 }
 
 func NewReader(record string) (*Reader, error) {
@@ -37,7 +37,7 @@ func NewReader(record string) (*Reader, error) {
 
 	return &Reader{
 		file:     file,
-		channels: make(map[string]ChannelCache),
+		channels: make(map[string]*recordproto.ChannelCache),
 	}, nil
 }
 
@@ -91,15 +91,56 @@ func (r *Reader) ReadHeader() (*recordproto.Header, error) {
 
 	data, err := r.Read(Section.size)
 	if err != nil {
-        return nil, fmt.Errorf("failed to read header data: %v", err)
+		return nil, fmt.Errorf("failed to read header data: %v", err)
 	}
-    
+
 	// put the data into the header
-    var header recordproto.Header
+	var header recordproto.Header
 	err = proto.Unmarshal(data, &header)
 	if err != nil {
-	    return nil, fmt.Errorf("failed to unmarshal header: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal header: %v", err)
 	}
 
 	return &header, nil
+}
+
+// read index
+func (r *Reader) ReadIndex(position uint64) (*recordproto.Index, error) {
+	Section, err := r.ReadSection(int64(position))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read section: %v", err)
+	}
+
+	if Section.type_ != recordproto.SectionType_SECTION_INDEX {
+		return nil, fmt.Errorf("invalid section type: %v", Section.type_)
+	}
+
+	data, err := r.Read(Section.size)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read index data: %v", err)
+	}
+
+	var index recordproto.Index
+	err = proto.Unmarshal(data, &index)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal index: %v", err)
+	}
+
+	// iterate over the index entries
+	for _, item := range index.Indexes {
+		itemType := item.GetType()
+		channelCache := item.GetChannelCache()
+
+		switch itemType {
+		case recordproto.SectionType_SECTION_CHUNK_HEADER:
+			r.chunkHeaderIdx = append(r.chunkHeaderIdx, item)
+		case recordproto.SectionType_SECTION_CHUNK_BODY:
+			r.chunkBodyIdx = append(r.chunkBodyIdx, item)
+		case recordproto.SectionType_SECTION_CHANNEL:
+			channelName := channelCache.GetName()
+			r.channels[channelName] = channelCache
+		}
+	}
+
+	return &index, nil
 }
