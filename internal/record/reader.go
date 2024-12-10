@@ -100,7 +100,6 @@ func (r *Reader) ReadHeader() (*recordproto.Header, error) {
 	return &header, nil
 }
 
-// read index
 func (r *Reader) ReadIndex(position uint64) (*recordproto.Index, error) {
 	Section, err := r.ReadSection(int64(position))
 	if err != nil {
@@ -148,29 +147,3 @@ func (r *Reader) ReadChunkBody(position uint64) (*recordproto.ChunkBody, error) 
 
 	return &chunkBody, nil
 }
-
-
-
-// func (r *Reader) ReadChunkHeader(position uint64) (*recordproto.ChunkHeader, error) {
-	// Section, err := r.ReadSection(int64(position))
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to read section: %v", err)
-	// }
-
-	// if Section.type_ != recordproto.SectionType_SECTION_CHUNK_HEADER {
-	// 	return nil, fmt.Errorf("invalid section type: %v", Section.type_)
-	// }
-
-	// data, err := r.Read(Section.size)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to read chunk header data: %v", err)
-	// }
-
-	// var chunkHeader recordproto.ChunkHeader
-	// err = proto.Unmarshal(data, &chunkHeader)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to unmarshal chunk header: %v", err)
-	// }
-
-	// return &chunkHeader, nil
-// }

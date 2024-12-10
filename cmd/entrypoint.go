@@ -25,7 +25,7 @@ func main() {
 	var echoCmd = &cobra.Command{
 		Use:   "echo <record file> [--topic <topic>]",
 		Short: "Print the messages of the record file",
-		// Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(1),
 		Run:   EchoCommand,
 	}
 
