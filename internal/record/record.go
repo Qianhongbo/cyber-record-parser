@@ -275,6 +275,8 @@ func (r *Record) parseMessage(messageTypeStr string, data []byte) (string, error
 }
 
 func (r *Record) printMessage(message Message) {
+	clearScreen()
+	
 	channelName := message.ChannelName
 	fmt.Print(strings.Repeat("-", 50))
 	fmt.Println()

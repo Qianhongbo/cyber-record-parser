@@ -2,6 +2,7 @@ package record
 
 import (
 	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/eiannone/keyboard"
@@ -61,4 +62,13 @@ func handleControlSignals() bool {
 	default:
 	}
 	return false
+}
+
+func clearScreen() {
+	switch os := runtime.GOOS; os {
+	case "windows":
+		fmt.Print("\033[H\033[2J") // Windows清屏
+	default:
+		fmt.Print("\033[H\033[2J") // Linux/macOS清屏
+	}
 }
