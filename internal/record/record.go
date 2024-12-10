@@ -191,10 +191,10 @@ func (r *Record) PrintRecordHeaderInfo() {
 	// sort channel names
 	sort.Strings(channelNames)
 
-	fmt.Printf("%-45s | %-7s | %s\n", "Channel name", "Count", "Type")
+	fmt.Printf("%-50s | %-7s | %s\n", "Channel name", "Count", "Type")
 	for _, channelName := range channelNames {
 		channel := r.Channels[channelName]
-		fmt.Printf("%-45s | %-7d | %s\n", *channel.Name, *channel.MessageNumber, *channel.MessageType)
+		fmt.Printf("%-50s | %-7d | %s\n", *channel.Name, *channel.MessageNumber, *channel.MessageType)
 	}
 }
 
