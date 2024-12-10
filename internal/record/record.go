@@ -148,12 +148,25 @@ func (r *Record) addProtoDesc(protoDesc *recordproto.ProtoDesc) {
 	}
 }
 
+// PrintRecordHeaderInfo prints the record header information and channel details.
 func (r *Record) PrintRecordHeaderInfo() {
 	fmt.Println()
 	fmt.Println("Cyber Record information:")
 	fmt.Println("----------------------------")
 	fmt.Println()
 
+	r.printRecordHeader()
+
+	fmt.Println()
+	fmt.Println("Channels information:")
+	fmt.Println("----------------------------")
+	fmt.Println()
+
+	r.printChannelsInfo()
+}
+
+// printRecordHeader prints information related to the record header.
+func (r *Record) printRecordHeader() {
 	fmt.Printf("- %-20s %s\n", "Record file path", filepath.Base(r.Filepath))
 
 	header := r.Header
@@ -183,18 +196,16 @@ func (r *Record) PrintRecordHeaderInfo() {
 	fmt.Printf("- %-20s %d\n", "Message number", *header.MessageNumber)
 	fmt.Printf("- %-20s %d\n", "Channel number", *header.ChannelNumber)
 	fmt.Printf("- %-20s %t\n", "Is complete", *header.IsComplete)
+}
 
-	fmt.Println()
-	fmt.Println("Channels information:")
-	fmt.Println("----------------------------")
-	fmt.Println()
-
-	// sort channels by name alphabetically
+// printChannelsInfo prints the list of channels and their information.
+func (r *Record) printChannelsInfo() {
 	var channelNames []string
 	for name := range r.Channels {
 		channelNames = append(channelNames, name)
 	}
-	// sort channel names
+
+	// Sort channel names
 	sort.Strings(channelNames)
 
 	fmt.Printf("%-50s | %-7s | %s\n", "Channel name", "Count", "Type")
@@ -233,78 +244,76 @@ func (r *Record) ReadMessage() <-chan Message {
 	return ch
 }
 
+func (r *Record) parseMessage(messageTypeStr string, data []byte) (string, error) {
+	fullname := protoreflect.FullName(messageTypeStr)
+	// get message type
+	messageType, err := protoregistry.GlobalTypes.FindMessageByName(fullname)
+	if err != nil {
+		return "", fmt.Errorf("failed to find message type: %v", err)
+	}
+
+	// create a message instance
+	msg := messageType.New().Interface()
+
+	// unmarshal the message
+	err = proto.Unmarshal(data, msg)
+	if err != nil {
+		return "", fmt.Errorf("failed to unmarshal message: %v", err)
+	}
+
+	// marshal the message to json
+	options := protojson.MarshalOptions{
+		Multiline: true,
+		Indent:    "  ",
+	}
+	jsonData, err := options.Marshal(msg)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal message to json: %v", err)
+	}
+
+	return string(jsonData), nil
+}
+
+func (r *Record) printMessage(message Message) {
+	channelName := message.ChannelName
+	fmt.Print(strings.Repeat("-", 50))
+	fmt.Println()
+	fmt.Printf("Channel name: %s\n", channelName)
+	fmt.Printf("Time nanosecond: %d\n", message.Time)
+	dt := time.Unix(0, int64(message.Time))
+	fmt.Printf("Time: %s\n", dt.Format("2006-01-02 15:04:05"))
+	data := message.Content
+
+	// get message type
+	if r.Channels[channelName] == nil {
+		fmt.Println("Channel not found: ", channelName)
+		return
+	}
+
+	channelCache := r.Channels[channelName]
+	messageTypeStr := channelCache.GetMessageType()
+	jsonData, err := r.parseMessage(messageTypeStr, data)
+	if err != nil {
+		fmt.Println("Failed to marshal message to json: ", err)
+		return
+	}
+
+	fmt.Println("\nMessage:\n", jsonData)
+}
+
 // TODO: add start and end time filter
 func (r *Record) PrintTopicMsg(topic string) {
 	go listenForSpace()
 
 loop:
 	for msg := range r.ReadMessage() {
-		select {
-		case <-stopChan:
+		if handleControlSignals() {
 			break loop
-		case isPaused = <-pauseChan:
-			if isPaused {
-				for isPaused {
-					time.Sleep(100 * time.Millisecond)
-					select {
-					case <-stopChan:
-						break loop
-					case isPaused = <-pauseChan:
-					default:
-					}
-				}
-			}
-		default:
-			channelName := msg.ChannelName
-			if topic != "" && channelName != topic {
-				continue
-			}
-			fmt.Print(strings.Repeat("-", 50))
-			fmt.Println()
-			fmt.Printf("Channel name: %s\n", channelName)
-			fmt.Printf("Time nanosecond: %d\n", msg.Time)
-			dt := time.Unix(0, int64(msg.Time))
-			fmt.Printf("Time: %s\n", dt.Format("2006-01-02 15:04:05"))
-			data := msg.Content
-
-			// get message type
-			if r.Channels[channelName] == nil {
-				fmt.Println("Channel not found: ", channelName)
-				continue
-			}
-
-			channelCache := r.Channels[channelName]
-			messageTypeStr := channelCache.GetMessageType()
-
-			fullname := protoreflect.FullName(messageTypeStr)
-			// get message type
-			messageType, err := protoregistry.GlobalTypes.FindMessageByName(fullname)
-			if err != nil {
-				fmt.Println("Failed to find message type: ", err)
-				continue
-			}
-
-			// create a message instance
-			msg := messageType.New().Interface()
-
-			// unmarshal the message
-			err = proto.Unmarshal(data, msg)
-			if err != nil {
-				fmt.Println("Failed to unmarshal message: ", err)
-			}
-
-			// marshal the message to json
-			options := protojson.MarshalOptions{
-				Multiline: true,
-				Indent:    "  ",
-			}
-			jsonData, err := options.Marshal(msg)
-			if err != nil {
-				fmt.Println("Failed to marshal message to json: ", err)
-			}
-
-			fmt.Println("\nMessage:")
-			fmt.Println(string(jsonData))
 		}
+		if topic != "" && msg.ChannelName != topic {
+			continue
+		}
+
+		r.printMessage(msg)
 	}
 }

@@ -2,6 +2,7 @@ package record
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/eiannone/keyboard"
 )
@@ -41,4 +42,23 @@ func listenForSpace() {
 			}
 		}
 	}
+}
+
+func handleControlSignals() bool {
+	select {
+	case <-stopChan:
+		return true
+	case isPaused := <-pauseChan:
+		for isPaused {
+			time.Sleep(100 * time.Millisecond)
+			select {
+			case <-stopChan:
+				return true
+			case isPaused = <-pauseChan:
+			default:
+			}
+		}
+	default:
+	}
+	return false
 }
