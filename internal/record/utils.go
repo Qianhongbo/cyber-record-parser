@@ -25,7 +25,7 @@ func listenForSpace() {
 			return
 		}
 
-		if key == keyboard.KeyEsc {
+		if key == keyboard.KeyEsc || key == keyboard.KeyCtrlC || key == keyboard.KeyCtrlD || char == 'q' {
 			fmt.Println("\nExiting program...")
 			stopChan <- true
 			return
@@ -35,7 +35,7 @@ func listenForSpace() {
 			isPaused = !isPaused
 			pauseChan <- isPaused
 			if isPaused {
-				fmt.Println("\nPaused. Press SPACE to resume or ESC to exit...")
+				fmt.Println("\nPaused. Press SPACE to resume or ESC / q / Ctrl+C to exit...")
 			} else {
 				fmt.Println("\nResumed.")
 			}

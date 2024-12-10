@@ -93,10 +93,13 @@ func (r *Record) parseProtoDesc(channelCache *recordproto.ChannelCache) {
 }
 
 func (r *Record) addProtoDesc(protoDesc *recordproto.ProtoDesc) {
+	// first add deps recursively
 	deps := protoDesc.GetDependencies()
 	for _, dep := range deps {
 		r.addProtoDesc(dep)
 	}
+
+	// transform FileDescriptorProto to FileDescriptor 
 	descData := protoDesc.GetDesc()
 	if len(descData) == 0 {
 		fmt.Println("Empty descriptor data")
@@ -110,6 +113,7 @@ func (r *Record) addProtoDesc(protoDesc *recordproto.ProtoDesc) {
 		return
 	}
 
+	// register FileDescriptor
 	fd, err := protodesc.NewFile(&fileDescProto, protoregistry.GlobalFiles)
 	if err != nil {
 		fmt.Println("Failed to create file descriptor:", err)
@@ -121,14 +125,13 @@ func (r *Record) addProtoDesc(protoDesc *recordproto.ProtoDesc) {
 		return
 	}
 
-	// register FileDescriptor
 	err = protoregistry.GlobalFiles.RegisterFile(fd)
 	if err != nil {
 		fmt.Println("Failed to register file:", err)
 		return
 	}
 
-	// register MessageDescriptor
+	// register each MessageDescriptor
 	for i := 0; i < fd.Messages().Len(); i++ {
 		md := fd.Messages().Get(i)
 		mt := dynamicpb.NewMessageType(md)
