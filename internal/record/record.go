@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -244,7 +243,7 @@ func (r *Record) ReadMessage() <-chan Message {
 	return ch
 }
 
-func (r *Record) convertMessageToJSON(messageTypeStr string, data []byte) (string, error) {
+func (r *Record) ConvertMessageToJSON(messageTypeStr string, data []byte) (string, error) {
 	fullname := protoreflect.FullName(messageTypeStr)
 	// get message type
 	messageType, err := protoregistry.GlobalTypes.FindMessageByName(fullname)
@@ -272,50 +271,4 @@ func (r *Record) convertMessageToJSON(messageTypeStr string, data []byte) (strin
 	}
 
 	return string(jsonData), nil
-}
-
-func (r *Record) printMessage(message Message) {
-	clearScreen()
-
-	channelName := message.ChannelName
-	fmt.Print(strings.Repeat("-", 50))
-	fmt.Println()
-	fmt.Printf("Channel name: %s\n", channelName)
-	fmt.Printf("Time nanosecond: %d\n", message.Time)
-	dt := time.Unix(0, int64(message.Time))
-	fmt.Printf("Time: %s\n", dt.Format("2006-01-02 15:04:05"))
-	data := message.Content
-
-	// get message type
-	if r.Channels[channelName] == nil {
-		fmt.Println("Channel not found: ", channelName)
-		return
-	}
-
-	channelCache := r.Channels[channelName]
-	messageTypeStr := channelCache.GetMessageType()
-	jsonData, err := r.convertMessageToJSON(messageTypeStr, data)
-	if err != nil {
-		fmt.Println("Failed to marshal message to json: ", err)
-		return
-	}
-
-	fmt.Println("\nMessage:\n", jsonData)
-}
-
-// TODO: add start and end time filter
-func (r *Record) PrintTopicMsg(topic string) {
-	go listenForSpace()
-
-loop:
-	for msg := range r.ReadMessage() {
-		if handleControlSignals() {
-			break loop
-		}
-		if topic != "" && msg.ChannelName != topic {
-			continue
-		}
-
-		r.printMessage(msg)
-	}
 }
