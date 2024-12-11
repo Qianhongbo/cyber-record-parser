@@ -92,3 +92,13 @@ Message:
 
 }
 ```
+
+### tojson cmd
+
+```bash
+cyber_record_parser tojson /path/to/file -t <topic> -o <output_file>
+```
+
+```Text
+Save topic (/asensing_rtk570/raw_rtk_can) messages to /tmp/test.json 
+```
