@@ -2,11 +2,7 @@ package record
 
 import (
 	"fmt"
-	"path/filepath"
-	"sort"
-	"time"
 
-	"github.com/dustin/go-humanize"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
@@ -144,73 +140,6 @@ func (r *Record) addProtoDesc(protoDesc *recordproto.ProtoDesc) {
 			fmt.Println("Failed to register message type:", err)
 			return
 		}
-	}
-}
-
-// PrintRecordHeaderInfo prints the record header information and channel details.
-func (r *Record) PrintRecordHeaderInfo() {
-	fmt.Println()
-	fmt.Println("Cyber Record information:")
-	fmt.Println("----------------------------")
-	fmt.Println()
-
-	r.printRecordHeader()
-
-	fmt.Println()
-	fmt.Println("Channels information:")
-	fmt.Println("----------------------------")
-	fmt.Println()
-
-	r.printChannelsInfo()
-}
-
-// printRecordHeader prints information related to the record header.
-func (r *Record) printRecordHeader() {
-	fmt.Printf("- %-20s %s\n", "Record file path", filepath.Base(r.Filepath))
-
-	header := r.Header
-	version := fmt.Sprintf("%d.%d", *header.MajorVersion, *header.MinorVersion)
-	fmt.Printf("- %-20s %s\n", "Version", version)
-
-	size := humanize.Bytes(*header.Size)
-	fmt.Printf("- %-20s %s\n", "Size", size)
-
-	fmt.Printf("- %-20s %s\n", "Compression", header.Compress.String())
-
-	chunkRawSize := humanize.Bytes(*header.ChunkRawSize)
-	fmt.Printf("- %-20s %s\n", "Chunk raw size", chunkRawSize)
-
-	chunkInterval := time.Duration(*header.ChunkInterval)
-	fmt.Printf("- %-20s %s\n", "Chunk interval", chunkInterval)
-
-	startTime := time.Unix(int64(*header.BeginTime/1e9), 0)
-	fmt.Printf("- %-20s %s\n", "Start time", startTime)
-
-	endTime := time.Unix(int64(*header.EndTime/1e9), 0)
-	fmt.Printf("- %-20s %s\n", "End time", endTime)
-
-	duration := endTime.Sub(startTime)
-	fmt.Printf("- %-20s %s\n", "Duration", duration)
-
-	fmt.Printf("- %-20s %d\n", "Message number", *header.MessageNumber)
-	fmt.Printf("- %-20s %d\n", "Channel number", *header.ChannelNumber)
-	fmt.Printf("- %-20s %t\n", "Is complete", *header.IsComplete)
-}
-
-// printChannelsInfo prints the list of channels and their information.
-func (r *Record) printChannelsInfo() {
-	var channelNames []string
-	for name := range r.Channels {
-		channelNames = append(channelNames, name)
-	}
-
-	// Sort channel names
-	sort.Strings(channelNames)
-
-	fmt.Printf("%-50s | %-7s | %s\n", "Channel name", "Count", "Type")
-	for _, channelName := range channelNames {
-		channel := r.Channels[channelName]
-		fmt.Printf("%-50s | %-7d | %s\n", *channel.Name, *channel.MessageNumber, *channel.MessageType)
 	}
 }
 
