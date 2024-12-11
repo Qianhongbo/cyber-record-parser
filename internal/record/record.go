@@ -172,12 +172,12 @@ func (r *Record) ReadMessage() <-chan Message {
 	return ch
 }
 
-func (r *Record) ConvertMessageToJSON(messageTypeStr string, data []byte) (string, error) {
+func (r *Record) ConvertMessageToJSON(messageTypeStr string, data []byte, options *protojson.MarshalOptions) ([]byte, error) {
 	fullname := protoreflect.FullName(messageTypeStr)
 	// get message type
 	messageType, err := protoregistry.GlobalTypes.FindMessageByName(fullname)
 	if err != nil {
-		return "", fmt.Errorf("failed to find message type: %v", err)
+		return nil, fmt.Errorf("failed to find message type: %v", err)
 	}
 
 	// create a message instance
@@ -186,18 +186,17 @@ func (r *Record) ConvertMessageToJSON(messageTypeStr string, data []byte) (strin
 	// unmarshal the message
 	err = proto.Unmarshal(data, msg)
 	if err != nil {
-		return "", fmt.Errorf("failed to unmarshal message: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal message: %v", err)
 	}
 
 	// marshal the message to json
-	options := protojson.MarshalOptions{
-		Multiline: true,
-		Indent:    "  ",
+	if options == nil {
+		options = &protojson.MarshalOptions{}
 	}
 	jsonData, err := options.Marshal(msg)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal message to json: %v", err)
+		return nil, fmt.Errorf("failed to marshal message to json: %v", err)
 	}
 
-	return string(jsonData), nil
+	return jsonData, nil
 }

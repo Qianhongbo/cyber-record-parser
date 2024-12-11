@@ -8,6 +8,7 @@ import (
 	"cyber_record_parser/internal/record"
 
 	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func EchoCommand(cmd *cobra.Command, args []string) {
@@ -57,11 +58,14 @@ func printMessage(record *record.Record, message record.Message) {
 
 	channelCache := record.Channels[channelName]
 	messageTypeStr := channelCache.GetMessageType()
-	jsonData, err := record.ConvertMessageToJSON(messageTypeStr, data)
+	jsonData, err := record.ConvertMessageToJSON(messageTypeStr, data, &protojson.MarshalOptions{
+			Multiline: true,
+			Indent:    "  ",
+		})
 	if err != nil {
 		fmt.Println("Failed to marshal message to json: ", err)
 		return
 	}
 
-	fmt.Println("\nMessage:\n", jsonData)
+	fmt.Println("\nMessage:\n", string(jsonData))
 }
