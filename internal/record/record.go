@@ -244,7 +244,7 @@ func (r *Record) ReadMessage() <-chan Message {
 	return ch
 }
 
-func (r *Record) parseMessage(messageTypeStr string, data []byte) (string, error) {
+func (r *Record) convertMessageToJSON(messageTypeStr string, data []byte) (string, error) {
 	fullname := protoreflect.FullName(messageTypeStr)
 	// get message type
 	messageType, err := protoregistry.GlobalTypes.FindMessageByName(fullname)
@@ -276,7 +276,7 @@ func (r *Record) parseMessage(messageTypeStr string, data []byte) (string, error
 
 func (r *Record) printMessage(message Message) {
 	clearScreen()
-	
+
 	channelName := message.ChannelName
 	fmt.Print(strings.Repeat("-", 50))
 	fmt.Println()
@@ -294,7 +294,7 @@ func (r *Record) printMessage(message Message) {
 
 	channelCache := r.Channels[channelName]
 	messageTypeStr := channelCache.GetMessageType()
-	jsonData, err := r.parseMessage(messageTypeStr, data)
+	jsonData, err := r.convertMessageToJSON(messageTypeStr, data)
 	if err != nil {
 		fmt.Println("Failed to marshal message to json: ", err)
 		return
