@@ -31,6 +31,11 @@ type Message struct {
 }
 
 func NewRecord(recordpath string) *Record {
+	// expand record path user
+	recordpath, err := expandUser(recordpath)
+	if err != nil {
+		fmt.Println("Failed to expand user in record path: ", err)
+	}
 	recordReader, err := NewReader(recordpath)
 	if err != nil {
 		fmt.Println("Failed to create record reader: ", err)
@@ -143,7 +148,7 @@ func (r *Record) addProtoDesc(protoDesc *recordproto.ProtoDesc) {
 	}
 }
 
-func (r *Record) ReadMessage() <-chan Message {
+func (r *Record) ReadMessages() <-chan Message {
 	ch := make(chan Message)
 
 	go func() {
@@ -160,10 +165,27 @@ func (r *Record) ReadMessage() <-chan Message {
 			for _, msg := range chunk.GetMessages() {
 				channelName := msg.GetChannelName()
 				data := msg.GetContent()
+
+				if r.Channels[channelName] == nil {
+					fmt.Println("Channel not found: ", channelName)
+					return
+				}
+
+				channelCache := r.Channels[channelName]
+				messageTypeStr := channelCache.GetMessageType()
+				jsonData, err := r.ConvertMessageToJSON(messageTypeStr, data, &protojson.MarshalOptions{
+					Multiline: true,
+					Indent:    "  ",
+				})
+				if err != nil {
+					fmt.Println("Failed to marshal message to json: ", err)
+					return
+				}
+
 				ch <- Message{
 					ChannelName: channelName,
 					Time:        msg.GetTime(),
-					Content:     data,
+					Content:     jsonData,
 				}
 			}
 		}

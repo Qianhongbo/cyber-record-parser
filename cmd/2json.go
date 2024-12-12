@@ -56,34 +56,17 @@ func saveTopicMsgToJson(record *record.Record, topic string, output string) (pat
 	}
 
 	// Loop through the messages and write them to the file
-	for msg := range record.ReadMessage() {
+	for msg := range record.ReadMessages() {
 		if topic != "" && msg.ChannelName != topic {
 			continue
 		}
 
-		channelName := msg.ChannelName
-		ts := msg.Time
-		data := msg.Content
-
-		// Skip if channel is not available
-		if record.Channels[channelName] == nil {
-			continue
-		}
-
-		channelCache := record.Channels[channelName]
-		messageTypeStr := channelCache.GetMessageType()
-
-		// Convert the message content to JSON
-		contentData, err := record.ConvertMessageToJSON(messageTypeStr, data, nil)
-		if err != nil {
-			return "", fmt.Errorf("failed to convert message to json: %w", err)
-		}
-		var raw json.RawMessage = []byte(contentData)
+		var raw json.RawMessage = []byte(msg.Content)
 
 		// Construct the JSON data
 		jsonData := map[string]interface{}{
-			"topic": channelName,
-			"time":  ts,
+			"topic": msg.ChannelName,
+			"time":  msg.Time,
 			"data":  raw,
 		}
 

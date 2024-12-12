@@ -8,7 +8,6 @@ import (
 	"cyber_record_parser/internal/record"
 
 	"github.com/spf13/cobra"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func EchoCommand(cmd *cobra.Command, args []string) {
@@ -26,7 +25,7 @@ func printTopicMsg(record *record.Record, topic string) {
 	go listenForSpace()
 
 loop:
-	for msg := range record.ReadMessage() {
+	for msg := range record.ReadMessages() {
 		if handleControlSignals() {
 			break loop
 		}
@@ -34,11 +33,11 @@ loop:
 			continue
 		}
 
-		printMessage(record, msg)
+		printMessage(msg)
 	}
 }
 
-func printMessage(record *record.Record, message record.Message) {
+func printMessage(message record.Message) {
 	clearScreen()
 
 	channelName := message.ChannelName
@@ -49,23 +48,5 @@ func printMessage(record *record.Record, message record.Message) {
 	dt := time.Unix(0, int64(message.Time))
 	fmt.Printf("Time: %s\n", dt.Format("2006-01-02 15:04:05"))
 	data := message.Content
-
-	// get message type
-	if record.Channels[channelName] == nil {
-		fmt.Println("Channel not found: ", channelName)
-		return
-	}
-
-	channelCache := record.Channels[channelName]
-	messageTypeStr := channelCache.GetMessageType()
-	jsonData, err := record.ConvertMessageToJSON(messageTypeStr, data, &protojson.MarshalOptions{
-			Multiline: true,
-			Indent:    "  ",
-		})
-	if err != nil {
-		fmt.Println("Failed to marshal message to json: ", err)
-		return
-	}
-
-	fmt.Println("\nMessage:\n", string(jsonData))
+	fmt.Println("\nMessage:\n", string(data))
 }
