@@ -1,12 +1,12 @@
 package main
 
 import (
-    "fmt"
-    "os"
-    "time"
-    "runtime"
+	"fmt"
+	"os"
+	"runtime"
+	"time"
 
-    "github.com/eiannone/keyboard"
+	"github.com/eiannone/keyboard"
 )
 
 func CheckIfFileExists(filePath string) {
@@ -21,6 +21,9 @@ var pauseChan chan bool = make(chan bool)
 var stopChan chan bool = make(chan bool)
 
 func listenForSpace() {
+	wg.Add(1)
+	defer wg.Done()
+
 	err := keyboard.Open()
 	if err != nil {
 		fmt.Println("Error opening keyboard:", err)

@@ -3,12 +3,15 @@ package main
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"cyber_record_parser/internal/record"
 
 	"github.com/spf13/cobra"
 )
+
+var wg sync.WaitGroup
 
 func EchoCommand(cmd *cobra.Command, args []string) {
 	theRecordFilePath := args[0]
@@ -22,6 +25,7 @@ func EchoCommand(cmd *cobra.Command, args []string) {
 }
 
 func printTopicMsg(record *record.Record, topic string) {
+	// listen for keyboard key press events	
 	go listenForSpace()
 
 loop:
@@ -35,6 +39,8 @@ loop:
 
 		printMessage(msg)
 	}
+
+	wg.Wait()
 }
 
 func printMessage(message record.Message) {
