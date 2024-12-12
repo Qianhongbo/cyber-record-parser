@@ -14,7 +14,7 @@ on:
 jobs:
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v4
 
@@ -34,14 +34,14 @@ jobs:
       run: |
         mkdir -p release
         mv cyber_record_parser release/
-        tar -czf cyber_record_parser.tar.gz -C release cyber_record_parser
+        tar -czf cyber_record_parser-ubuntu-2004.tar.gz -C release cyber_record_parser
 
     - name: Create Release
       id: create_release
       if: startsWith(github.ref, 'refs/tags/')
       uses: actions/create-release@v1
       with:
-        tag_name: ${{ github.ref_name }} # 使用推送的标签作为版本号
+        tag_name: ${{ github.ref_name }}
         release_name: "${{ github.ref_name }}"
         body: "Automatically generated release by GitHub Actions."
         draft: false
@@ -54,8 +54,8 @@ jobs:
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./cyber_record_parser.tar.gz
-        asset_name: cyber_record_parser.tar.gz
+        asset_path: ./cyber_record_parser-ubuntu-2004.tar.gz
+        asset_name: cyber_record_parser-ubuntu-2004.tar.gz
         asset_content_type: application/gzip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
