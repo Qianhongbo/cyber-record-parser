@@ -1,7 +1,9 @@
 # cyber-record-parser
+
 A Go library for parsing and processing Cyber Record files.
 
 ## Build
+
 ```bash
 go build -o cyber_record_parser ./cmd
 ```
@@ -13,6 +15,7 @@ mv cyber_record_parser /usr/local/bin
 ```
 
 ## Usage
+
 ```bash
 # help
 cyber_record_parser -h
@@ -21,12 +24,13 @@ cyber_record_parser -h
 cyber_record_parser info <file>
 
 # echo cmd
-cyber_record_parser echo <file> -t/--topic <topic> 
+cyber_record_parser echo <file> -t/--topic <topic>
 ```
+
 > Note:
-> 
+>
 > Pause and resume echo cmd with `Space` key.
-> 
+>
 > Exit echo cmd with `Ctrl+C` / `ESC` / `q`.
 
 ## Output example
@@ -100,5 +104,32 @@ cyber_record_parser tojson /path/to/file -t <topic> -o <output_file>
 ```
 
 ```Text
-Save topic (/asensing_rtk570/raw_rtk_can) messages to /tmp/test.json 
+Save topic (/asensing_rtk570/raw_rtk_can) messages to /tmp/test.json
 ```
+
+## Use as a library
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"cyber_record_parser/internal/record"
+)
+
+func main() {
+	r := record.NewRecord("/path/to/file")
+	defer r.Close()
+
+	for msg := range r.ReadMessages() {
+		fmt.Printf("Channel: %s\n", msg.ChannelName)
+		fmt.Printf("Timestamp: %d\n", msg.NanoTimestamp)
+		fmt.Printf("Content: %s\n", string(msg.Content))
+	}
+}
+```
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
