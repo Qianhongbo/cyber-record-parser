@@ -66,7 +66,7 @@ func saveTopicMsgToJson(record *record.Record, topic string, output string) (pat
 		// Construct the JSON data
 		jsonData := map[string]interface{}{
 			"topic": msg.ChannelName,
-			"time":  msg.Time,
+			"time":  msg.NanoTimestamp,
 			"data":  raw,
 		}
 

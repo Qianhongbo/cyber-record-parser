@@ -25,9 +25,9 @@ type Record struct {
 }
 
 type Message struct {
-	ChannelName string
-	Time        uint64
-	Content     []byte
+	ChannelName   string
+	NanoTimestamp uint64
+	Content       []byte
 }
 
 func NewRecord(recordpath string) *Record {
@@ -183,9 +183,9 @@ func (r *Record) ReadMessages() <-chan Message {
 				}
 
 				ch <- Message{
-					ChannelName: channelName,
-					Time:        msg.GetTime(),
-					Content:     jsonData,
+					ChannelName:   channelName,
+					NanoTimestamp: msg.GetTime(),
+					Content:       jsonData,
 				}
 			}
 		}

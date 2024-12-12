@@ -50,8 +50,8 @@ func printMessage(message record.Message) {
 	fmt.Print(strings.Repeat("-", 50))
 	fmt.Println()
 	fmt.Printf("Channel name: %s\n", channelName)
-	fmt.Printf("Time nanosecond: %d\n", message.Time)
-	dt := time.Unix(0, int64(message.Time))
+	fmt.Printf("Timestamp nanosecond: %d\n", message.NanoTimestamp)
+	dt := time.Unix(0, int64(message.NanoTimestamp))
 	fmt.Printf("Time: %s\n", dt.Format("2006-01-02 15:04:05"))
 	data := message.Content
 	fmt.Println("\nMessage:\n", string(data))
