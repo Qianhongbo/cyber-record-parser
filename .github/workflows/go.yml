@@ -1,4 +1,4 @@
-# This workflow will build a golang project
+# This workflow will build a Golang project and create a Release
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
 name: Go
@@ -6,6 +6,8 @@ name: Go
 on:
   push:
     branches: [ "master" ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ "master" ]
 
@@ -24,5 +26,36 @@ jobs:
     - name: Build
       run: go build -o cyber_record_parser -v ./cmd
 
+    # Uncomment this step to run tests
     # - name: Test
     #   run: go test -v ./...
+
+    - name: Archive binary
+      run: |
+        mkdir -p release
+        mv cyber_record_parser release/
+        tar -czf cyber_record_parser.tar.gz -C release cyber_record_parser
+
+    - name: Create Release
+      id: create_release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/create-release@v1
+      with:
+        tag_name: ${{ github.ref_name }} # 使用推送的标签作为版本号
+        release_name: "${{ github.ref_name }}"
+        body: "Automatically generated release by GitHub Actions."
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Release Asset
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./cyber_record_parser.tar.gz
+        asset_name: cyber_record_parser.tar.gz
+        asset_content_type: application/gzip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
