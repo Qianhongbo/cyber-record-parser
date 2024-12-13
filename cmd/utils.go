@@ -10,10 +10,10 @@ import (
 )
 
 func CheckIfFileExists(filePath string) {
-    _, err := os.Stat(filePath)
-    if err != nil {
-        fmt.Println("Input record file does not exist: ", filePath)
-    }
+	_, err := os.Stat(filePath)
+	if err != nil {
+		fmt.Println("Input record file does not exist: ", filePath)
+	}
 }
 
 var isPaused bool = false
@@ -24,33 +24,35 @@ func listenForSpace() {
 	wg.Add(1)
 	defer wg.Done()
 
-	err := keyboard.Open()
+	keysEvents, err := keyboard.GetKeys(10)
 	if err != nil {
-		fmt.Println("Error opening keyboard:", err)
-		return
+		panic(err)
 	}
 	defer keyboard.Close()
 
 	for {
-		char, key, err := keyboard.GetKey()
-		if err != nil {
-			fmt.Println("Error reading key:", err)
+		select {
+		case <-stopChan:
 			return
-		}
+		case event := <-keysEvents:
+			if event.Err != nil {
+				panic(event.Err)
+			}
 
-		if key == keyboard.KeyEsc || key == keyboard.KeyCtrlC || key == keyboard.KeyCtrlD || char == 'q' {
-			fmt.Println("\nExiting program...")
-			stopChan <- true
-			return
-		}
+			if event.Key == keyboard.KeyEsc || event.Key == keyboard.KeyCtrlC || event.Key == keyboard.KeyCtrlD || event.Rune == 'q' {
+				fmt.Println("\nExiting program...")
+				stopChan <- true
+				return
+			}
 
-		if char == ' ' || key == keyboard.KeySpace {
-			isPaused = !isPaused
-			pauseChan <- isPaused
-			if isPaused {
-				fmt.Println("\nPaused. Press SPACE to resume or ESC / q / Ctrl+C to exit...")
-			} else {
-				fmt.Println("\nResumed.")
+			if event.Rune == ' ' || event.Key == keyboard.KeySpace {
+				isPaused = !isPaused
+				pauseChan <- isPaused
+				if isPaused {
+					fmt.Println("\nPaused. Press SPACE to resume or ESC / q / Ctrl+C to exit...")
+				} else {
+					fmt.Println("\nResumed.")
+				}
 			}
 		}
 	}

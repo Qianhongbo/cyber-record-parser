@@ -20,12 +20,12 @@ func EchoCommand(cmd *cobra.Command, args []string) {
 	record := record.NewRecord(theRecordFilePath)
 	defer record.Close()
 
-    topic := cmd.Flag("topic").Value.String()
+	topic := cmd.Flag("topic").Value.String()
 	printTopicMsg(record, topic)
 }
 
 func printTopicMsg(record *record.Record, topic string) {
-	// listen for keyboard key press events	
+	// listen for keyboard key press events
 	go listenForSpace()
 
 loop:
@@ -40,6 +40,7 @@ loop:
 		printMessage(msg)
 	}
 
+	stopChan <- true
 	wg.Wait()
 }
 
